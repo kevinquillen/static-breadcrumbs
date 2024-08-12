@@ -1,0 +1,50 @@
+node.type.*.third_party.static_breadcrumbs:
+  type: mapping
+  label: "Breadcrumb settings on a node type form."
+  mapping:
+    breadcrumb_path:
+      type: mapping
+      label: A set of breadcrumbs.
+      mapping:
+        entities:
+          type: sequence
+          label: 'List of entities used as breadcrumbs.'
+          sequence:
+            type: string
+            label: 'Entity ID'
+#
+#user.role.*.third_party.static_breadcrumbs:
+#  type: mapping
+#  label: "Breadcrumb settings on a node type form."
+#  mapping:
+#    breadcrumb_path:
+#      type: mapping
+#      label: A set of breadcrumbs.
+#      mapping:
+#        breadcrumb_path_0:
+#          type: integer
+#          label: 'The first breadcrumb.'
+#        breadcrumb_path_1:
+#          type: integer
+#          label: 'The second breadcrumb.'
+#        breadcrumb_path_2:
+#          type: integer
+#          label: 'The third breadcrumb.'
+#
+#taxonomy.vocabulary.*.third_party.static_breadcrumbs:
+#  type: mapping
+#  label: "Breadcrumb settings on a node type form."
+#  mapping:
+#    breadcrumb_path:
+#      type: mapping
+#      label: A set of breadcrumbs.
+#      mapping:
+#        breadcrumb_path_0:
+#          type: integer
+#          label: 'The first breadcrumb.'
+#        breadcrumb_path_1:
+#          type: integer
+#          label: 'The second breadcrumb.'
+#        breadcrumb_path_2:
+#          type: integer
+#          label: 'The third breadcrumb.'

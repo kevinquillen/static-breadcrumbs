@@ -1,0 +1,4 @@
+name: 'Static Breadcrumbs'
+type: module
+description: 'Allows you to set static breadcrumbs at the content type level.'
+core_version_requirement: ^10 || ^11

@@ -1,0 +1,6 @@
+static_breadcrumbs.breadcrumb_settings:
+  title: Static breadcrumb settings
+  description: Set configuration for what content types may have custom breadcrumb chains set sitewide.
+  parent: system.admin_config_system
+  route_name: static_breadcrumbs.breadcrumb_settings
+  weight: 10

@@ -1,0 +1,15 @@
+services:
+  static_breadcrumbs.base:
+    class: Drupal\static_breadcrumbs\PathBasedBreadcrumbBuilderOverride
+    decorates: system.breadcrumb.default
+    decoration_priority: 10
+    public: false
+    arguments: [ '@router.request_context', '@access_manager', '@router', '@path_processor_manager', '@config.factory',  '@title_resolver', '@current_user', '@path.current', '@path.matcher', '@router.admin_context']
+  static_breadcrumbs.generic_breadcrumb:
+    class: Drupal\static_breadcrumbs\GenericBreadcrumbBuilder
+    arguments: ['@router.admin_context', '@path_alias.manager', '@entity_type.manager', '@config.factory']
+    tags:
+      # The priority must be higher than core taxonomy builder (priority: 1002)
+      # and higher than Menu Breadcrumb (priority: 1010)
+      # see https://www.drupal.org/node/1495510
+      - { name: breadcrumb_builder, priority: 1050 }

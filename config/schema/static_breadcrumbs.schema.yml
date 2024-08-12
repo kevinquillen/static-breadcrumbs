@@ -1,0 +1,16 @@
+static_breadcrumbs.settings:
+  type: config_entity
+  label: 'Static Breadcrumb Settings'
+  mapping:
+    node_bundles:
+      type: mapping
+      label: 'Bundle machine names.'
+      sequence:
+        type: string
+        label: 'The name of each bundle.'
+    allowed_types:
+      type: mapping
+      label: 'Allowed bundles.'
+      sequence:
+        type: string
+        label: 'The name of each bundle.'

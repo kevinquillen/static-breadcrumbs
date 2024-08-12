@@ -1,0 +1,7 @@
+static_breadcrumbs.breadcrumb_settings:
+  path: '/admin/config/system/breadcrumb-settings'
+  defaults:
+    _title: 'Static breadcrumb settings'
+    _form: 'Drupal\static_breadcrumbs\Form\BreadcrumbSettingsForm'
+  requirements:
+    _permission: 'administer site configuration'

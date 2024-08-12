@@ -1,0 +1,168 @@
+<?php
+
+/**
+ * @file
+ * SFP breadcrumbs module file.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Breadcrumb\Breadcrumb;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\node\Entity\Node;
+
+/**
+ * Implements hook_form_node_type_form_alter().
+ *
+ * @codingStandardsIgnore
+ */
+function static_breadcrumbs_form_node_type_form_alter(array &$form, FormStateInterface $form_state) {
+  _static_breadcrumbs_breadcrumb_settings_form($form, $form_state);
+}
+
+/**
+ * Implements hook_form_taxonomy_vocabulary_form_alter().
+ *
+ * @codingStandardsIgnore
+ */
+function static_breadcrumbs_form_taxonomy_vocabulary_form_alter(array &$form, FormStateInterface $form_state) {
+  _static_breadcrumbs_breadcrumb_settings_form($form, $form_state);
+}
+
+/**
+ * Implements hook_form_user_admin_settings_form_alter().
+ *
+ * @codingStandardsIgnore
+ */
+function static_breadcrumbs_form_user_role_form_alter(array &$form, FormStateInterface $form_state) {
+  _static_breadcrumbs_breadcrumb_settings_form($form, $form_state, TRUE);
+}
+
+/**
+ * Provides breadcrumb third party settings code for a form.
+ */
+function _static_breadcrumbs_breadcrumb_settings_form(array &$form, FormStateInterface $form_state) {
+  $bundle = $form_state->getFormObject()->getEntity();
+  $crumbs = $bundle->getThirdPartySetting('static_breadcrumbs', 'breadcrumb_path');
+  $bundle_settings = \Drupal::configFactory()->get('static_breadcrumbs.settings')->get('node_bundles');
+  $allowed_types = \Drupal::configFactory()->get('static_breadcrumbs.settings')->get('allowed_types');
+
+  if (is_array($bundle_settings)) {
+    $allowed_bundles = array_keys($bundle_settings);
+  }
+  else {
+    $allowed_bundles = ['page'];
+  }
+
+  if (is_array($allowed_types)) {
+    $allowed_types = array_keys($allowed_types);
+  }
+  else {
+    $allowed_types = [];
+  }
+
+  if (in_array($bundle->id(), $allowed_types)) {
+    $form['breadcrumb'] = [
+      '#type' => 'details',
+      '#title' => t('Breadcrumb Settings'),
+      '#description' => t('When on the detail page, what should the breadcrumb trail be? You do not need to specify the homepage, or the page title itself. Only @bundles are allowed entity types to be referenced.', ['@bundles' => implode(', ', $allowed_bundles)]),
+      '#group' => 'additional_settings',
+      '#tree' => TRUE,
+    ];
+
+    $count = $form_state->get('breadcrumb_count');
+
+    if (!empty($crumbs) && !$form_state->isRebuilding()) {
+      $count = count($crumbs);
+      $form_state->set('breadcrumb_count', count($crumbs));
+    }
+
+    if (is_null($count)) {
+      $count = 1;
+      $form_state->set('breadcrumb_count', $count);
+    }
+
+    $form['breadcrumb']['items'] = [
+      '#prefix' => '<div id="breadcrumb-fieldset-wrapper">',
+      '#suffix' => '</div>',
+    ];
+
+    for ($i = 0; $i < $count; $i++) {
+      $node = '';
+
+      if (isset($crumbs[$i])) {
+        $node = Node::load($crumbs[$i]);
+      }
+
+      $form['breadcrumb']['items']['breadcrumb_path'][$i] = [
+        '#title' => t('Breadcrumb #@position', ['@position' => $i + 1]),
+        '#description' => t('Start typing to select a page.'),
+        '#default_value' => $node,
+        '#type' => 'entity_autocomplete',
+        '#target_type' => 'node',
+        '#selection_settings' => [
+          'target_bundles' => $allowed_bundles,
+        ],
+        '#weight' => '0',
+      ];
+    }
+
+    $form['breadcrumb']['add'] = [
+      '#type' => 'submit',
+      '#name' => 'add_breadcrumb',
+      '#value' => t('Add another breadcrumb'),
+      '#submit' => ['static_breadcrumbs_static_increment'],
+      '#ajax' => [
+        'callback' => 'static_breadcrumbs_add_another',
+        'effect' => 'fade',
+        'wrapper' => 'breadcrumb-fieldset-wrapper',
+      ],
+    ];
+
+    $form['actions']['submit']['#submit'][] = 'static_breadcrumbs_type_link_form_submit';
+  }
+
+  return $form;
+}
+
+/**
+ * AJAX submit function for the breadcrumb form.
+ */
+function static_breadcrumbs_static_increment(array &$form, FormStateInterface $form_state) {
+  $count = $form_state->get('breadcrumb_count') + 1;
+  $form_state->set('breadcrumb_count', $count);
+  $form_state->setRebuild(TRUE);
+}
+
+/**
+ * AJAX callback function for the breadcrumb form.
+ */
+function static_breadcrumbs_add_another(array &$form, FormStateInterface $form_state) {
+  return $form['breadcrumb']['items'];
+}
+
+/**
+ * Form submit handler function for static_breadcrumbs.
+ */
+function static_breadcrumbs_type_link_form_submit(array &$form, FormStateInterface $form_state) {
+  $values = $form_state->getValue('breadcrumb');
+
+  if (!empty($values["items"]["breadcrumb_path"])) {
+    $values = array_filter($values["items"]["breadcrumb_path"]);
+    $entity = $form_state->getFormObject()->getEntity();
+    $entity_type = $entity->getEntityTypeId();
+    $definition = \Drupal::entityTypeManager()->getStorage($entity_type)->load($entity->id());
+    $definition->setThirdPartySetting('static_breadcrumbs', 'breadcrumb_path', $values);
+    $definition->save();
+  }
+}
+
+/**
+ * Implements hook_system_breadcrumb_alter().
+ */
+function static_breadcrumbs_system_breadcrumb_alter(Breadcrumb &$breadcrumb, RouteMatchInterface $route_match, array $context) {
+  if ($route_match && $node = $route_match->getParameter('node')) {
+    $breadcrumb->addCacheableDependency($node);
+  }
+}
